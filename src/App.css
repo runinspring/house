@@ -1,0 +1,32 @@
+@import '~antd/dist/antd.css';
+.App {
+
+}
+.area{
+  margin:2px;
+  padding: 4px;
+  border: 1px solid gray;
+  border-radius: 3px;
+}
+.line{
+  margin:10px 0 10px 0;
+}
+.inLine{
+  float:left;
+}
+.contentOut{
+  display: flex;
+  margin-right: 10px;
+}
+.contentIn{
+  margin: auto;
+  margin-right: 4px;
+}
+.header{
+  font-weight: bold;
+  color: black;
+  /*font-size: ;*/
+}
+.clear{
+  clear: both;
+}
