@@ -1,5 +1,5 @@
 exports.fmoney = function (s, n) {
-    if(typeof s == 'string'){
+    if(typeof s === 'string'){
         return s;
     }
     n = n > 0 && n <= 20 ? n : 0;
