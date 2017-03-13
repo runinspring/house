@@ -181,7 +181,7 @@ class App extends Component {
         const { benjinWhenSell, lixiWhenSell, needPayWhenSell, totalPayWhenSell, totalFirstPay, paybackWhenSell, sellYear, propertyChargesWhenSell} = this.state;
         var payMonth = sellYear * 12;
         return <div className="area">
-            <div className="header">{`${sellYear}年后总支出: ${fmoney(totalPayWhenSell, 2)}`}</div>
+            <div className="header">{`${sellYear}年后出售时总支出: ${fmoney(totalPayWhenSell, 2)}`}</div>
             <div>
                 {`首付款合计:${fmoney(totalFirstPay, 0)} 物业费:${fmoney(propertyChargesWhenSell)}`}
             </div>
@@ -195,7 +195,7 @@ class App extends Component {
         </div>
     }
     earnMoney() {//出售挣钱
-        const { sellPrice, earnMoney, basePrice, area,total} = this.state;
+        const { sellPrice, earnMoney, basePrice, area,total,sellYear} = this.state;
         // var basePrice = Math.ceil(totalPayWhenSell / area)
         return <div className="area">
             <div className="header">{`每平米售价在${fmoney(basePrice)}以上才有盈利`}</div>
@@ -205,12 +205,15 @@ class App extends Component {
                     <InputNumber step={100} min={0} formatter={value => `${value}`} style={{ width: 80 }}
                         value={sellPrice}
                         onChange={this.onChagneValue.bind(this, 'sellPrice')} />
-                    <div className="contentIn">{` 房屋总价为:${fmoney(area * sellPrice)} 涨幅:${fmoney((area * sellPrice-total)/total*100,2)}% 可以盈利:${fmoney(earnMoney, 0)}`}</div>
+                    <div className="contentIn">{` 房屋总价为:${fmoney(area * sellPrice)} 涨幅:${fmoney((area * sellPrice-total)/total*100,2)}% 
+                    盈利:${fmoney(earnMoney, 0)} 投资年化率:${fmoney(earnMoney/total/sellYear*100,2)}%`}
+                    </div>
                 </div>
             </div>
             <div className="clear" />
         </div>
     }
+    
 
     render() {
         // console.log(this.state)
