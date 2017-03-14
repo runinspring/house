@@ -206,7 +206,7 @@ class App extends Component {
                         value={sellPrice}
                         onChange={this.onChagneValue.bind(this, 'sellPrice')} />
                     <div className="contentIn">{` 房屋总价为:${fmoney(area * sellPrice)} 涨幅:${fmoney((area * sellPrice-total)/total*100,2)}% 
-                    盈利:${fmoney(earnMoney, 0)} 投资年化率:${fmoney(earnMoney/total/sellYear*100,2)}%`}
+                    盈利:${fmoney(earnMoney, 0)} `}
                     </div>
                 </div>
             </div>
