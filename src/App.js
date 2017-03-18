@@ -1,8 +1,8 @@
-import React, { Component } from 'react';
-import { InputNumber, Select } from 'antd';
+import React, {Component} from 'react';
+import {InputNumber, Select} from 'antd';
 const Option = Select.Option;
 import './App.css';
-import { fmoney, cut2 } from './lib/Utils';
+import {fmoney, cut2} from './lib/Utils';
 
 class App extends Component {
     state = {
@@ -12,6 +12,8 @@ class App extends Component {
         tax: 1,//契税
         repair: 30,//专项维修资金
         sellYear: 6,//几年后出售
+        zhongjie: 2.7,//中介费+保障服务费 2.7%
+        zhongjieTotal: 0,//中介费的总额
 
         loanType: '0',//贷款形式 0商贷 1公积金
         loanYear: 20,//贷款年限
@@ -57,7 +59,7 @@ class App extends Component {
                 obj['rate'] = 3.25;//公积金
             }
         }
-        if (obj.area < 1) obj.area = 1;
+        if (obj.area < 0) obj.area = 0;
 
         var total = obj.price * obj.area;
         var borrow = total * obj.percent / 10;
@@ -130,7 +132,8 @@ class App extends Component {
         obj.monthPay = monthPay;
         obj.totalTax = totalTax;
         obj.totalRepair = totalRepair;
-        obj.totalFirstPay = obj.firstPay + totalTax + totalRepair + 10 + 5 + 80;
+        obj.zhongjieTotal = Math.floor(obj.zhongjie * total / 100);
+        obj.totalFirstPay = obj.firstPay + totalTax + totalRepair + 10 + 5 + 80 + obj.zhongjieTotal;
         obj.paybackWhenSell = paybackWhenSell;
         obj.arrMonthPay = arrMonthPay;
         obj.needPayWhenSell = needPayWhenSell;
@@ -149,14 +152,18 @@ class App extends Component {
     }
 
     firstPay() {//第一次要付的款
-        const {firstPay, totalTax, totalRepair, totalFirstPay} = this.state;
+        const {firstPay, totalTax, totalRepair, totalFirstPay, zhongjieTotal} = this.state;
         return <div className="area">
             <div className="header">{`首付款合计: ${fmoney(totalFirstPay)}`}</div>
             <div>
-                {`首付款:${fmoney(firstPay, 0)} 专项维修资金:${fmoney(totalRepair, 0)} 契税:${fmoney(totalTax)} 产权登记费:80 印花税:10 工本费:5`}
+                {`首付款:${fmoney(firstPay, 0)} 专项维修资金:${fmoney(totalRepair, 0)} 契税:${fmoney(totalTax)} 中介费:${zhongjieTotal}`}
+            </div>
+            <div>
+                {`产权登记费:80 印花税:10 工本费:5`}
             </div>
         </div>
     }
+
     borrowArea() {//贷款信息显示区域
         const {monthPay, firstPay, total, totalMonth, totalPay, borrow, arrMonthPay, paybackType} = this.state;
         var heaerContent = `月均还款: ${fmoney(monthPay, 2)} `;
@@ -178,7 +185,7 @@ class App extends Component {
     }
 
     sell() {//出售
-        const { benjinWhenSell, lixiWhenSell, needPayWhenSell, totalPayWhenSell, totalFirstPay, paybackWhenSell, sellYear, propertyChargesWhenSell} = this.state;
+        const {benjinWhenSell, lixiWhenSell, needPayWhenSell, totalPayWhenSell, totalFirstPay, paybackWhenSell, sellYear, propertyChargesWhenSell} = this.state;
         var payMonth = sellYear * 12;
         return <div className="area">
             <div className="header">{`${sellYear}年后出售时总支出: ${fmoney(totalPayWhenSell, 2)}`}</div>
@@ -194,26 +201,28 @@ class App extends Component {
 
         </div>
     }
+
     earnMoney() {//出售挣钱
-        const { sellPrice, earnMoney, basePrice, area,total,sellYear} = this.state;
+        const {sellPrice, earnMoney, basePrice, area, total, sellYear} = this.state;
         // var basePrice = Math.ceil(totalPayWhenSell / area)
         return <div className="area">
             <div className="header">{`每平米售价在${fmoney(basePrice)}以上才有盈利`}</div>
             <div className="line">
                 <div className="inLine contentOut">
                     <div className="contentIn">售价为每平米</div>
-                    <InputNumber step={100} min={0} formatter={value => `${value}`} style={{ width: 80 }}
-                        value={sellPrice}
-                        onChange={this.onChagneValue.bind(this, 'sellPrice')} />
-                    <div className="contentIn">{` 房屋总价为:${fmoney(area * sellPrice)} 涨幅:${fmoney((area * sellPrice-total)/total*100,2)}% 
+                    <InputNumber step={100} min={0} formatter={value => `${value}`} style={{width: 80}}
+                                 value={sellPrice}
+                                 onChange={this.onChagneValue.bind(this, 'sellPrice')}/>
+                    <div
+                        className="contentIn">{` 房屋总价为:${fmoney(area * sellPrice)} 涨幅:${fmoney((area * sellPrice - total) / total * 100, 2)}%
                     盈利:${fmoney(earnMoney, 0)} `}
                     </div>
                 </div>
             </div>
-            <div className="clear" />
+            <div className="clear"/>
         </div>
     }
-    
+
 
     render() {
         // console.log(this.state)
@@ -224,85 +233,96 @@ class App extends Component {
                     <div className="line">
                         <div className="inLine contentOut">
                             <div className="contentIn">面积</div>
-                            <InputNumber min={0} step={0.01} formatter={value => `${value}`} style={{ width: 70 }}
-                                value={this.state.area}
-                                onChange={this.onChagneValue.bind(this, 'area')} />
+                            <InputNumber step={0.01} formatter={value => `${value}`} style={{width: 70}}
+                                         value={this.state.area}
+                                         onChange={this.onChagneValue.bind(this, 'area')}/>
                             <div className="contentIn">平米</div>
                         </div>
                         <div className="inLine contentOut">
                             <div className="contentIn">平米价格</div>
                             <InputNumber min={0} formatter={value => `${value}`} step={50}
-                                defaultValue={this.state.price}
-                                onChange={this.onChagneValue.bind(this, 'price')} />
+                                         defaultValue={this.state.price}
+                                         onChange={this.onChagneValue.bind(this, 'price')}/>
                         </div>
                         <div className="inLine contentOut">
                             <div className="contentIn">按揭</div>
-                            <InputNumber min={1} max={9} formatter={value => `${value}成`} style={{ width: 60 }}
-                                defaultValue={this.state.percent}
-                                onChange={this.onChagneValue.bind(this, 'percent')} />
+                            <InputNumber min={1} max={9} formatter={value => `${value}成`} style={{width: 60}}
+                                         defaultValue={this.state.percent}
+                                         onChange={this.onChagneValue.bind(this, 'percent')}/>
                         </div>
 
                     </div>
-                    <div className="clear" />
+                    <div className="clear"/>
                     <div className="line">
                         <div className="inLine contentOut">
-                            <Select defaultValue="0" style={{ width: 100 }}
-                                onChange={this.onChagneValue.bind(this, 'loanType')}>
+                            <Select defaultValue="0" style={{width: 100}}
+                                    onChange={this.onChagneValue.bind(this, 'loanType')}>
                                 <Option value="0">商业贷款</Option>
                                 <Option value="1">公积金贷款</Option>
                             </Select>
-                            <InputNumber min={0} formatter={value => `${value}年`} style={{ width: 60 }}
-                                defaultValue={this.state.loanYear}
-                                onChange={this.onChagneValue.bind(this, 'loanYear')} />
+                            <InputNumber min={0} formatter={value => `${value}年`} style={{width: 60}}
+                                         defaultValue={this.state.loanYear}
+                                         onChange={this.onChagneValue.bind(this, 'loanYear')}/>
                         </div>
 
                         <div className="inLine contentOut">
                             <div className="contentIn">利率</div>
-                            <InputNumber min={0} step={0.01} formatter={value => `${value}`} value={this.state.rate} style={{ width: 60 }}
-                                onChange={this.onChagneValue.bind(this, 'rate')} />
+                            <InputNumber min={0} step={0.01} formatter={value => `${value}`} value={this.state.rate}
+                                         style={{width: 60}}
+                                         onChange={this.onChagneValue.bind(this, 'rate')}/>
                             <div className="contentIn">%</div>
                         </div>
-                        <Select value={this.state.paybackType} style={{ width: 100 }}
-                            onChange={this.onChagneValue.bind(this, 'paybackType')}>
+                        <Select value={this.state.paybackType} style={{width: 100}}
+                                onChange={this.onChagneValue.bind(this, 'paybackType')}>
                             <Option value="0">等额本息</Option>
                             <Option value="1">等额本金</Option>
                         </Select>
                     </div>
-                    <div className="clear" />
+                    <div className="clear"/>
                     <div className="line">
                         <div className="inLine contentOut">
                             <div className="contentIn">契税</div>
-                            <InputNumber min={0} step={0.1} formatter={value => `${value}`} style={{ width: 50 }}
-                                value={this.state.tax}
-                                onChange={this.onChagneValue.bind(this, 'tax')} />
-                                <div className="contentIn">%</div>
+                            <InputNumber min={0} step={0.1} formatter={value => `${value}`} style={{width: 50}}
+                                         value={this.state.tax}
+                                         onChange={this.onChagneValue.bind(this, 'tax')}/>
+                            <div className="contentIn">%</div>
                         </div>
                         <div className="inLine contentOut">
+                            <div className="contentIn">中介费</div>
+                            <InputNumber min={0} formatter={value => `${value}`} style={{width: 50}}
+                                         value={this.state.zhongjie}
+                                         onChange={this.onChagneValue.bind(this, 'zhongjie')}/>
+                            <div className="contentIn">%</div>
+                        </div>
+                    </div>
+                    <div className="clear"/>
+                    <div className="line">
+                        <div className="inLine contentOut">
                             <div className="contentIn">专项维修资金</div>
-                            <InputNumber min={0} formatter={value => `${value}`} style={{ width: 50 }}
-                                value={this.state.repair}
-                                onChange={this.onChagneValue.bind(this, 'repair')} />
+                            <InputNumber min={0} formatter={value => `${value}`} style={{width: 50}}
+                                         value={this.state.repair}
+                                         onChange={this.onChagneValue.bind(this, 'repair')}/>
                             <div className="contentIn">元/平</div>
                         </div>
                         <div className="inLine contentOut">
                             <div className="contentIn">物业费</div>
-                            <InputNumber min={0} step={0.1} formatter={value => `${value}`} style={{ width: 50 }}
-                                defaultValue={this.state.propertyCharges}
-                                onChange={this.onChagneValue.bind(this, 'propertyCharges')} />
+                            <InputNumber min={0} step={0.1} formatter={value => `${value}`} style={{width: 50}}
+                                         defaultValue={this.state.propertyCharges}
+                                         onChange={this.onChagneValue.bind(this, 'propertyCharges')}/>
                             <div className="contentIn">元/平</div>
                         </div>
                     </div>
-                    <div className="clear" />
+                    <div className="clear"/>
                     <div className="line">
                         <div className="inLine contentOut">
                             <InputNumber className="contentIn" min={0} formatter={value => `${value}`}
-                                style={{ width: 40 }}
-                                value={this.state.sellYear}
-                                onChange={this.onChagneValue.bind(this, 'sellYear')} />
+                                         style={{width: 40}}
+                                         value={this.state.sellYear}
+                                         onChange={this.onChagneValue.bind(this, 'sellYear')}/>
                             <div className="contentIn">年后出售</div>
                         </div>
                     </div>
-                    <div className="clear" />
+                    <div className="clear"/>
                 </div>
                 {this.firstPay()}
                 {this.borrowArea()}
